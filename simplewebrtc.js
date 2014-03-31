@@ -23,7 +23,9 @@ function SimpleWebRTC(opts) {
             media: {
                 video: true,
                 audio: true
-            }
+            },
+            customConnection: null,
+            alreadyConnected: false
         };
     var item, connection;
 
@@ -56,13 +58,7 @@ function SimpleWebRTC(opts) {
     WildEmitter.call(this);
 
     // our socket.io connection
-    connection = this.connection = io.connect(this.config.url);
-
-    connection.on('connect', function () {
-        self.emit('connectionReady', connection.socket.sessionid);
-        self.sessionReady = true;
-        self.testReadiness();
-    });
+    connection = this.connection = this.config.customConnection ? this.config.customConnection : io.connect(this.config.url);
 
     connection.on('message', function (message) {
         var peers = self.webrtc.getPeers(message.from, message.roomType);
@@ -153,6 +149,17 @@ function SimpleWebRTC(opts) {
     this.webrtc.on('videoOff', function () {
         self.webrtc.sendToAll('mute', {name: 'video'});
     });
+
+    if (this.config.alreadyConnected) {
+        self.onConnect();
+    } else {
+        connection.on('connect', self.onConnect.bind(this));
+        connection.on('connect', function () {
+            self.emit('connectionReady', connection.socket.sessionid);
+            self.sessionReady = true;
+            self.testReadiness();
+        });
+    }
 
     if (this.config.autoRequestMedia) this.startLocalVideo();
 }

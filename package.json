@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "express": "3.x.x",
-    "browserify": "2.22.0",
+    "browserify": "git://github.com/tonypee/node-browserify.git",
     "precommit-hook": "0.3.x",
     "request": "",
     "uglify-js": "2.3.6"
